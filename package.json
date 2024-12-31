@@ -1,18 +1,23 @@
 {
-  "name": "telegram-bot",
+  "name": "telegram-matchmaking-bot",
   "version": "1.0.0",
-  "description": "chat with randome people",
-  "main": "index.js",
+  "description": "A Telegram bot for matchmaking users using MongoDB.",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.5.3",
+    "node-telegram-bot-api": "^0.61.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.51.0",
+    "nodemon": "^3.1.1"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "https-proxy-agent": "^7.0.6",
-    "node-telegram-bot-api": "^0.66.0",
-    "socks5-https-client": "^1.2.1"
-  }
+  "license": "MIT"
 }
