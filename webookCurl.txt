@@ -1,0 +1,2 @@
+curl -F "url=https://00ca-178-252-144-146.ngrok-free.app/webhook" https://api.telegram.org/bot7619564043:AAEZhpp2CDaxT3JnZGRCmD5mpKP3Yf4hNBo/setWebhook
+curl -F "url=https://00ca-178-252-144-146.ngrok-free.app/webhook" https://api.telegram.org/bot7619564043:AAEZhpp2CDaxT3JnZGRCmD5mpKP3Yf4hNBo/deleteWebhook

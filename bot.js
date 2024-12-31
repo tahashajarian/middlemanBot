@@ -1,60 +1,44 @@
 require('dotenv').config(); // Load .env file
 
 const TelegramBot = require('node-telegram-bot-api');
+const token = process.env.BOT_TOKEN;
+const useWebhook = process.env.USE_WEBHOOK === 'true'; // Read webhook setting from .env
 
-// Check proxy type
-const isSocks = process.env.PROXY_TYPE === 'socks';
+// Create a bot that uses either 'polling' or 'webhook'
+const bot = new TelegramBot(token, { polling: !useWebhook });
 
-// Require appropriate proxy library
-const agent = isSocks
-    ? require('socks5-https-client/lib/Agent') // For SOCKS proxies
-    : require('https-proxy-agent');           // For HTTP proxies
-
-// Proxy configuration
-const proxyOptions = isSocks
-    ? {
-          agentClass: agent,
-          agentOptions: {
-              socksHost: process.env.PROXY_HOST || '127.0.0.1',
-              socksPort: parseInt(process.env.PROXY_PORT || '1080'),
-          },
-      }
-    : {
-          agent: new agent(`http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`),
-      };
-
-// Create the bot with proxy
-const bot = new TelegramBot(process.env.BOT_TOKEN, {
-    polling: true,
-    // request: proxyOptions,
-});
-
-// Log when the bot starts
-console.log(`[BOT] Starting bot...`);
-console.log(`[BOT] Proxy: ${process.env.PROXY_TYPE}://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`);
-console.log(`[BOT] Listening for messages...`);
-
-// Handle messages
+// Function to handle messages
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
-    const userMessage = msg.text;
-
-    // Log the received message
-    console.log(`[MESSAGE] Received: "${userMessage}" from ${msg.from.username || 'an unknown user'}`);
-
-    // Respond to the user
-    bot.sendMessage(chatId, `You said: "${userMessage}"`)
-        .then(() => console.log(`[MESSAGE] Replied to ${msg.from.username || 'an unknown user'}`))
-        .catch((err) => console.error(`[ERROR] Failed to reply: ${err.message}`));
+    console.log(msg)
+    if (msg.text === '/start') {
+        bot.sendMessage(chatId, 'Welcome to the dynamic bot!');
+    } else {
+        bot.sendMessage(chatId, 'You said: ' + msg.text);
+    }
 });
 
-// Log updates (when the bot receives new data)
-bot.on('polling_error', (err) => {
-    console.error(`[ERROR] Polling error: ${err.message}`);
-});
+if (useWebhook) {
+    const url = process.env.WEBHOOK_URL; // Define webhook URL in .env
+    const port = process.env.PORT || 5000; // Define port for webhook (default 3000)
 
-bot.on('webhook_error', (err) => {
-    console.error(`[ERROR] Webhook error: ${err.message}`);
-});
+    // Set webhook
+    bot.setWebHook(`${url}/bot${token}`);
 
-console.log(`[BOT] Bot is up and running!`);
+    // Handle incoming webhook requests
+    const express = require('express');
+    const app = express();
+    app.use(express.json());
+    
+    app.post(`/bot${token}`, (req, res) => {
+        const update = req.body;
+        bot.processUpdate(update);
+        res.sendStatus(200);
+    });
+
+    app.listen(port, () => {
+        console.log(`Webhook is set up at ${url}/bot${token}`);
+    });
+} else {
+    console.log('Bot is running with polling...');
+}
