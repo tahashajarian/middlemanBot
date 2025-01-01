@@ -11,7 +11,7 @@ const { handleStart, handleMatch, handleDisconnect } = require('./bot/commands')
     bot.on('message', (msg) => {
         const chatId = msg.chat.id;
         const user = { chatId, firstName: msg.from.first_name };
-
+        console.log(`Received a message from ${user.firstName} (${chatId}): ${msg.text}`);
         if (msg.text === '/start') {
             handleStart(bot, chatId);
         } else if (msg.text === '/match') {
