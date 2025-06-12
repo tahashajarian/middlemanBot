@@ -7,7 +7,7 @@ const handleChatMessage = async (bot, chatId, text) => {
   if (user && user.status === 'matched' && user.matchedWith) {
     const matchedUser = await User.findOne({ chatId: user.matchedWith });
     if (matchedUser) {
-      bot.sendMessage(matchedUser.chatId, `Message from ${user.firstName}: ${text}`, keyboards[user_status_enum.matched]);
+      bot.sendMessage(matchedUser.chatId, `Message from ${user.firstName}: ${text}`);
     } else {
       bot.sendMessage(chatId, 'Your match is no longer available.');
     }
