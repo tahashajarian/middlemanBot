@@ -1,44 +1,64 @@
-const User = require('../db/userModel');
+const { user_status_enum } = require("../consts");
+const User = require("../db/userModel");
 
 // Add user to matchmaking queue
 const addUserToQueue = async (user) => {
-    const existingUser = await User.findOne({ chatId: user.chatId });
-    if (!existingUser) {
-        return await User.create({ chatId: user.chatId, firstName: user.firstName });
-    }
-    existingUser.status = 'available';
-    existingUser.matchedWith = null;
-    return await existingUser.save();
+  const existingUser = await User.findOne({ chatId: user.chatId });
+  if (!existingUser) {
+    return await User.create({
+      chatId: user.chatId,
+      firstName: user.firstName,
+      status: user.status || "available",
+    });
+  }
+
+  existingUser.status = user.status || "available";
+  existingUser.matchedWith = null;
+  return await existingUser.save();
 };
 
 // Match users
 const matchUsers = async () => {
-    const users = await User.find({ status: 'available' }).limit(2);
-    if (users.length === 2) {
-        const [user1, user2] = users;
-        user1.status = 'matched';
-        user2.status = 'matched';
-        user1.matchedWith = user2.chatId;
-        user2.matchedWith = user1.chatId;
-        await user1.save();
-        await user2.save();
-        return { user1, user2 };
-    }
-    return null;
+  const users = await User.find({ status: user_status_enum.available }).limit(2);
+  if (users.length === 2) {
+    const [user1, user2] = users;
+    user1.status = user_status_enum.matched;
+    user2.status = user_status_enum.matched;
+    user1.matchedWith = user2.chatId;
+    user2.matchedWith = user1.chatId;
+    await user1.save();
+    await user2.save();
+    return { user1, user2 };
+  }
+  return null;
 };
 
 // Remove match
 const removeMatch = async (chatId) => {
-    const user = await User.findOne({ chatId });
-    if (user && user.matchedWith) {
-        const matchedUser = await User.findOne({ chatId: user.matchedWith });
-        user.status = 'available';
-        user.matchedWith = null;
-        matchedUser.status = 'available';
-        matchedUser.matchedWith = null;
-        await user.save();
-        await matchedUser.save();
-    }
+  const user = await User.findOne({ chatId });
+  if (user && user.matchedWith) {
+    const matchedUser = await User.findOne({ chatId: user.matchedWith });
+    user.status = user_status_enum.idle;
+    user.matchedWith = null;
+    matchedUser.status = user_status_enum.idle;
+    matchedUser.matchedWith = null;
+    await user.save();
+    await matchedUser.save();
+    return [user.chatId, matchedUser.chatId]; // return both chatIds
+  }
+  return [chatId]; // if no match, just return the current user
 };
 
-module.exports = { addUserToQueue, matchUsers, removeMatch };
+// put user at idle mode
+const pauseUser = async (chatId) => {
+  const user = await User.findOne({ chatId });
+  if (user) {
+    user.status = "idle";
+    user.matchedWith = null;
+    await user.save();
+    return true;
+  }
+  return false;
+};
+
+module.exports = { addUserToQueue, matchUsers, removeMatch, pauseUser };

@@ -1,25 +1,38 @@
-const TelegramBot = require('node-telegram-bot-api');
-const connectToDb = require('./db/connection');
-const config = require('./config/env');
-const { handleStart, handleMatch, handleDisconnect } = require('./bot/commands');
+const TelegramBot = require("node-telegram-bot-api");
+const connectToDb = require("./db/connection");
+const config = require("./config/env");
+const {
+  handleStart,
+  handleMatch,
+  handleDisconnect,
+} = require("./bot/commands");
+const { handleChatMessage } = require("./bot/handleChatMessage");
 
 (async () => {
-    await connectToDb(); // Connect to MongoDB
+  await connectToDb(); // Connect to MongoDB
 
-    const bot = new TelegramBot(config.token, { polling: !config.useWebhook });
+  const bot = new TelegramBot(config.token, { polling: !config.useWebhook });
 
-    bot.on('message', (msg) => {
-        const chatId = msg.chat.id;
-        const user = { chatId, firstName: msg.from.first_name };
-        console.log(`Received a message from ${user.firstName} (${chatId}): ${msg.text}`);
-        if (msg.text === '/start') {
-            handleStart(bot, chatId);
-        } else if (msg.text === '/match') {
-            handleMatch(bot, chatId, user);
-        } else if (msg.text === '/disconnect') {
-            handleDisconnect(bot, chatId);
-        }
-    });
+  bot.on("message", async (msg) => {
+    const chatId = msg.chat.id;
+    const user = { chatId, firstName: msg.from.first_name };
+    const text = msg.text;
 
-    console.log('Bot is running...');
+    console.log(
+      `Received a message from ${user.firstName} (${chatId}): ${text}`
+    );
+
+    if (text === "/start") {
+      await handleStart(bot, chatId);
+    } else if (text === "/match") {
+      await handleMatch(bot, chatId, user);
+    } else if (text === "/disconnect") {
+      await handleDisconnect(bot, chatId);
+    } else {
+      // Forward messages to the matched user
+      await handleChatMessage(bot, chatId, text);
+    }
+  });
+
+  console.log("Bot is running...");
 })();
