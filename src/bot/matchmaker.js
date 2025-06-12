@@ -8,11 +8,11 @@ const addUserToQueue = async (user) => {
     return await User.create({
       chatId: user.chatId,
       firstName: user.firstName,
-      status: user.status || "available",
+      status: user.status || user_status_enum.idle,
     });
   }
 
-  existingUser.status = user.status || "available";
+  existingUser.status = user.status || user_status_enum.idle;
   existingUser.matchedWith = null;
   return await existingUser.save();
 };

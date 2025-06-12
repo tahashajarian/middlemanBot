@@ -4,7 +4,7 @@ const keyboards = require('./keyboards');
 
 const handleChatMessage = async (bot, chatId, text) => {
   const user = await User.findOne({ chatId });
-  if (user && user.status === 'matched' && user.matchedWith) {
+  if (user && user.status === user_status_enum.matched && user.matchedWith) {
     const matchedUser = await User.findOne({ chatId: user.matchedWith });
     if (matchedUser) {
       bot.sendMessage(matchedUser.chatId, `Message from ${user.firstName}: ${text}`);

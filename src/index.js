@@ -5,8 +5,10 @@ const {
   handleStart,
   handleMatch,
   handleDisconnect,
+  handlePause,
 } = require("./bot/commands");
 const { handleChatMessage } = require("./bot/handleChatMessage");
+const { commands_enum } = require("./consts");
 
 (async () => {
   await connectToDb(); // Connect to MongoDB
@@ -22,12 +24,14 @@ const { handleChatMessage } = require("./bot/handleChatMessage");
       `Received a message from ${user.firstName} (${chatId}): ${text}`
     );
 
-    if (text === "/start") {
+    if (text === commands_enum.start) {
       await handleStart(bot, chatId);
-    } else if (text === "/match") {
+    } else if (text === commands_enum.match) {
       await handleMatch(bot, chatId, user);
-    } else if (text === "/disconnect") {
+    } else if (text === commands_enum.disconnect) {
       await handleDisconnect(bot, chatId);
+    } else if (text === commands_enum.pause) {
+      await handlePause(bot, chatId);
     } else {
       // Forward messages to the matched user
       await handleChatMessage(bot, chatId, text);
